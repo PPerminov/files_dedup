@@ -17,8 +17,9 @@ logging.basicConfig(filename=bin_path + str(time()) +
 def options_parser():
     from argparse import ArgumentParser
     parser = ArgumentParser(usage=None)
-    parser.add_argument('folder1')
-    parser.add_argument('folder2')
+    parser.add_argument('--src1', dest='folder1')
+    parser.add_argument('--src2', dest='folder2')
+    parser.add_argument('--no-delete', dest='test', action='store_true')
     args = parser.parse_args()
     return args
 
@@ -72,27 +73,37 @@ def walker(filelist, db, table):
     cursor.close()
 
 
-def files_deduplicator():
-    global bin_path
-    current_time = "table_" + str(int(time())) + ":"
-    folders = options_parser()
-    current_time = "table_" + str(int(time())) + ":"
-    path1, path2 = [path.abspath(folders.folder1),
-                    path.abspath(folders.folder2)]
-    table1, table2 = [current_time + path1, current_time + path2]
+def files_deduplicator(bin_path):
+    # global bin_path
+    # current_time = "table_" + str(int(time())) + ":"
+    options = options_parser()
+    current_time = int(time())
+    path1, path2 = [path.abspath(options.folder1),
+                    path.abspath(options.folder2)]
+    table1, table2 = [str(current_time), str(current_time+1)]
     files1, files2 = [filelist(path1), filelist(path2)]
+    # print(table1,table2)
+    # print(options)
+    # sys.exit()
     db = database(bin_path + '/1.db', [table1, table2])
     walker(files2, db, table2)
     walker(files1, db, table1)
-    data = db.execute(
-        """select '{0}'.path as path1 from '{0}' join '{1}' on '{0}'.digest = '{1}'.digest""".format(table2, table1))
-    for filepath in data.fetchall():
-        logging.debug(filepath)
-        remove(filepath[0])
+    db_cur=db.cursor()
+    data = db_cur.execute('select path from ? join ?  on ?.digest = ?.digest',(table2,table1,table2,table1,))
+    if options.test:
+        print(1)
+        for filepath in data.fetchall():
+            logging.debug(filepath)
+    else:
+        print(2)
+        # for filepath in data.fetchall():
+        #     logging.debug(filepath)
+
+            # remove(filepath[0])
 
 
 if __name__ == "__main__":
     try:
-        files_deduplicator()
+        files_deduplicator(bin_path)
     except KeyboardInterrupt:
         sys.exit()
