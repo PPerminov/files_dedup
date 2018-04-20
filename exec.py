@@ -88,7 +88,10 @@ def files_deduplicator():
         """select '{0}'.path as path1 from '{0}' join '{1}' on '{0}'.digest = '{1}'.digest""".format(table2, table1))
     for filepath in data.fetchall():
         logging.debug(filepath)
-        remove(filepath[0])
+        try:
+            remove(filepath[0])
+        except:
+            continue
 
 
 if __name__ == "__main__":
