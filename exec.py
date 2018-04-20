@@ -88,16 +88,7 @@ def files_deduplicator(bin_path):
     db = database(bin_path + '/1.db', [table1, table2])
     walker(files2, db, table2)
     walker(files1, db, table1)
-<<<<<<< HEAD
-    data = db.execute(
-        """select '{0}'.path as path1 from '{0}' join '{1}' on '{0}'.digest = '{1}'.digest""".format(table2, table1))
-    for filepath in data.fetchall():
-        logging.debug(filepath)
-        try:
-            remove(filepath[0])
-        except:
-            continue
-=======
+
     db_cur=db.cursor()
     data = db_cur.execute('select path from ? join ?  on ?.digest = ?.digest',(table2,table1,table2,table1,))
     if options.test:
@@ -106,11 +97,7 @@ def files_deduplicator(bin_path):
             logging.debug(filepath)
     else:
         print(2)
-        # for filepath in data.fetchall():
-        #     logging.debug(filepath)
 
-            # remove(filepath[0])
->>>>>>> 7a612acc5914db910277e39428677dfba7a2fdb7
 
 
 if __name__ == "__main__":
